@@ -1,0 +1,89 @@
+app-id: io.github.black_sliver.PopTracker
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+command: poptracker-launcher
+default-branch: stable
+rename-desktop-file: poptracker.desktop
+rename-icon: poptracker
+
+finish-args:
+  # Archipelago server connections and pack update checks
+  - --share=network
+  - --share=ipc
+  - --socket=wayland
+  # Not fallback-x11: PopTracker's popups (zenity) only open when DISPLAY is set
+  - --socket=x11
+  - --device=dri
+  # Lets the pack picker see downloaded pack zips
+  - --filesystem=xdg-download:ro
+  # PopTracker installs packs to ~/PopTracker; keep that folder in the app's data folder instead
+  - --persist=PopTracker
+
+cleanup:
+  - /include
+  - /lib/cmake
+  - /lib/pkgconfig
+  - /share/doc
+  - /share/licenses
+  - '*.a'
+  - '*.la'
+
+modules:
+  # The runtime only ships the SDL3 versions of these two libraries
+  - name: SDL2_image
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DSDL2IMAGE_SAMPLES=OFF
+      - -DSDL2IMAGE_TESTS=OFF
+      - -DSDL2IMAGE_AVIF=OFF
+      - -DSDL2IMAGE_JXL=OFF
+      - -DSDL2IMAGE_TIF=OFF
+    sources:
+      - type: archive
+        url: https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.12/SDL2_image-2.8.12.tar.gz
+        sha256: 393f5efb50536ec13ca4f4affb69cc9966d3c3f969e6c5e701faddf9f9785381
+
+  - name: SDL2_ttf
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DSDL2TTF_SAMPLES=OFF
+      - -DSDL2TTF_VENDORED=OFF
+      - -DSDL2TTF_HARFBUZZ=ON
+    sources:
+      - type: archive
+        url: https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.24.0/SDL2_ttf-2.24.0.tar.gz
+        sha256: 0b2bf1e7b6568adbdbc9bb924643f79d9dedafe061fa1ed687d1d9ac4e453bfd
+
+  - name: poptracker
+    buildsystem: meson
+    config-opts:
+      - -Dbuildtype=release
+      # Flatpak handles updates; this also skips the "check for updates?" prompt
+      - -Dcpp_args=-DWITHOUT_UPDATE_CHECK
+    post-install:
+      # Meson builds in a subfolder, so the added files are one level up
+      - install -Dm755 ../poptracker-launcher.sh /app/bin/poptracker-launcher
+      - install -Dm644 ../io.github.black_sliver.PopTracker.metainfo.xml /app/share/metainfo/io.github.black_sliver.PopTracker.metainfo.xml
+      - install -Dm644 /app/share/icons/poptracker.png /app/share/icons/hicolor/512x512/apps/poptracker.png
+      - rm /app/share/icons/poptracker.png
+      - sed -i 's/^Exec=poptracker/Exec=poptracker-launcher/' /app/share/applications/poptracker.desktop
+    sources:
+      - type: archive
+        url: https://github.com/black-sliver/PopTracker/releases/download/v0.36.0/poptracker_0-36-0_full-source.tar.xz
+        sha256: 87afbdb3d29765e5a3997e886ef50a8ff5c5ec7eb41d495b07bfcd758eeb89c4
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/black-sliver/PopTracker/releases/latest
+          version-query: .tag_name | ltrimstr("v")
+          url-query: .assets[] | select(.name | endswith("_full-source.tar.xz")) | .browser_download_url
+          timestamp-query: .published_at
+          is-main-source: true
+      - type: file
+        path: poptracker-launcher.sh
+      - type: file
+        path: io.github.black_sliver.PopTracker.metainfo.xml

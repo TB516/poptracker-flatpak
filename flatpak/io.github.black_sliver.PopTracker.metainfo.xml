@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.black_sliver.PopTracker</id>
+  <name>PopTracker</name>
+  <summary>Track items and locations in randomizers and Archipelago</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <description>
+    <p>PopTracker is a universal item and location tracker for game randomizers. With a tracker pack for your game, it shows what you've collected and which locations you can reach, and it can follow your progress live from an Archipelago server.</p>
+    <p>This is an unofficial Flatpak of PopTracker.</p>
+  </description>
+  <launchable type="desktop-id">io.github.black_sliver.PopTracker.desktop</launchable>
+  <url type="homepage">https://github.com/black-sliver/PopTracker</url>
+  <url type="bugtracker">https://github.com/black-sliver/PopTracker/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.36.0" date="2026-10-25"/>
+  </releases>
+</component>
